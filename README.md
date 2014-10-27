@@ -1,4 +1,4 @@
 #Stanford/Coursera Class - Algorithms: Design and Analysis
-##My Solutions
+#My Solutions
 
-### part1-assignment1: Counting inversions by merge-sorting a large set
+* part1-assignment1: Counting inversions by merge-sorting a large set
