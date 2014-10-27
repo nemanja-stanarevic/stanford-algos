@@ -23,5 +23,10 @@ project/target/
 # Mac
 .DS_Store
 
+#Activator
+activator
+activator.bat
+activator-launch-*.jar
+
 #Other
 scalastyle-config.xml
