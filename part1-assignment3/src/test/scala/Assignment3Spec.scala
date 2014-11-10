@@ -3,39 +3,8 @@ import org.scalatest.matchers.ShouldMatchers
 import assignment3.Main._
 
 class Assignment3Spec extends FlatSpec with Matchers {
-  def runTest(setup: String) = {
-    val graph = setup
-      .split('\n')
-      .foldLeft(Graph[Set[Int]](Vector(), Vector())) {
-        (graph, inputLine) ⇒
-          val list = inputLine.split(Array(' ', '\t', ',')).foldLeft(Vector[Int]()) {
-            (v, vertexStr) ⇒ v :+ vertexStr.toInt
-          }
-          // -1s to adjust for zero-based vector indexing 
-          val vertex = list.head
-          val adjecency = list.tail
-          val edges = adjecency map { destVertex ⇒ (vertex - 1, destVertex - 1) }
-          Graph(
-            graph.vertices :+ Set(vertex),
-            graph.edges ++ edges)
-      }
-
-    // number of iterations should be n^2 ln(n) where n is number of vertices
-    val n = graph.vertices.size
-    val iterations = ( Math.pow(n, 2) * Math.log(n) ).toInt
-
-    var minCuts = Int.MaxValue
-    import scala.util.Random
-    for (iter <- 0 until iterations) {
-      implicit val rng = new Random()
-      val result = ranomizedContraction(graph)
-      val cuts = countCuts(result)
-      if (cuts < minCuts) {
-        minCuts = cuts
-      }
-    }
-    minCuts
-  }
+  def runTest(setup: String) =
+    calculateMinCuts(parseGraph(setup), debug = false)
 
   "Ranomized contraction" should "work for 'two x-ed boxes' connected with two edges" in {
     runTest("""1 2 6 5

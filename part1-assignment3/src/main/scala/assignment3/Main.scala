@@ -3,6 +3,7 @@ package assignment3
 import scala.collection.immutable._
 import scala.util.Random
 import scala.annotation.tailrec
+import java.lang.Boolean
 
 object Main extends App {
   case class Graph[T](
@@ -10,8 +11,11 @@ object Main extends App {
     edges: Vector[(Int, Int)])
 
   def loadGraph(fileName: String): Graph[Set[Int]] =
-    scala.io.Source.fromFile(fileName)
-      .getLines
+    parseGraph(scala.io.Source.fromFile(fileName).mkString)
+
+  def parseGraph(graphStr: String): Graph[Set[Int]] = 
+    graphStr
+      .lines
       .foldLeft(Graph[Set[Int]](Vector(), Vector())) {
         (graph, inputLine) ⇒
           val list = inputLine.split(Array(' ', '\t', ',')).foldLeft(Vector[Int]()) {
@@ -32,8 +36,7 @@ object Main extends App {
       graph
     else {
       // pick an edge at random
-      val edgeIndex = rng.nextInt(graph.edges.size)
-      val (v1, v2) = graph.edges(edgeIndex)
+      val (v1, v2) = graph.edges(rng.nextInt(graph.edges.size))
       val newVertices = graph.vertices
         // contract v1 and v2 into a single vertex
         .updated(v1, graph.vertices(v1) ++ graph.vertices(v2))
@@ -65,27 +68,31 @@ object Main extends App {
       case _      ⇒ false
     }
 
+  def calculateMinCuts(graph: Graph[Set[Int]], debug: Boolean = false): Int = {
+    val n = graph.vertices.size
+    val iterations = ( Math.pow(n, 2) * Math.log(n) ).toInt
+    if (debug)
+      println(s"Looking for min cut in {$iterations} iterations")
+
+    var minCuts = Int.MaxValue
+    for (iter <- 0 until iterations) {
+      if (debug & (iter % 100 == 0))
+        println(s"Iteration #{$iter}...")
+
+      implicit val rng = new Random()
+      val cuts = countCuts(ranomizedContraction(graph))
+      if (cuts < minCuts) {
+        minCuts = cuts
+        if (debug)
+          println(s"Found fewer cuts (${minCuts}) in iteration #{$iter}")
+      }
+    }
+    minCuts
+  }
+
   val fileName = if (args.isEmpty) "data.txt" else args.head
   val input = loadGraph(fileName)
-
-  // number of iterations should be n^2 ln(n) where n is number of vertices
-  val n = input.vertices.size
-  val iterations = (Math.pow(n, 2) * Math.log(n)).toInt
-
-  var minCuts = Int.MaxValue
-  println(s"Looking for min cut in {$iterations} iterations")
-  for (iter ← 0 until iterations) {
-    if (iter % 100 == 0) {
-      println(s"Iteration #{$iter}...")
-    }
-    implicit val rng = new Random()
-    val result = ranomizedContraction(input)
-    val cuts = countCuts(result)
-    if (cuts < minCuts) {
-      minCuts = cuts
-      println(s"Found fewer cuts (${minCuts}) in iteration #{$iter}")
-    }
-  }
-  println(s"Min cuts = ${minCuts} after {$iterations} iterations")
+  val minCuts = calculateMinCuts(input, debug = true)
+  println(s"Min cuts = ${minCuts}")
 }
 
